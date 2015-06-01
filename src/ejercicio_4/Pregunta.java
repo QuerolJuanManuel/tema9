@@ -9,9 +9,15 @@ public class Pregunta {
 	public String respuesta4;
 	public int respuestaCorrecta;
 	
-	Pregunta(){
+	public Pregunta(){
+		this.pregunta=null;
+		this.respuesta1=null;
+		this.respuesta2=null;
+		this.respuesta3=null;
+		this.respuesta4=null;
+		this.respuestaCorrecta=0;
 	}
-	Pregunta (String pregunta, String respuesta1, String respuesta2, String respuesta3, String respuesta4, int respuestaCorrecta){
+	public Pregunta (String pregunta, String respuesta1, String respuesta2, String respuesta3, String respuesta4, int respuestaCorrecta){
 		this.pregunta=pregunta;
 		this.respuesta1=respuesta1;
 		this.respuesta2=respuesta2;

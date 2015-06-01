@@ -3,7 +3,7 @@ package ejercicio_4;
 import java.io.*;
 
 import com.db4o.*;
-import com.db4o.config.EmbeddedConfiguration;
+
 
 public class CrearBaseDatos {
 
@@ -43,29 +43,48 @@ public class CrearBaseDatos {
 		ObjectSet res = bd.queryByExample(new Pregunta());
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 		int aciertos =0;
-		int i =0;//Contamos las preguntas elegidas
-		int j=0;//Contamos el total de preguntas consideradas
-		while(i < 10 && j<res.size()){
-			if(res.hasNext()){
-				Pregunta pt = (Pregunta) res.next();
-				j++;
-				//Probabilidad del 70% de eelgir la pregunta
-				if(Math.random() > 0.7 || (res.size()-j)<=(10-i)){
+		int i =0;
+		int j=0;
+		int[] elegidas = new int[10];
+		int size = res.size();
+		int NumPregunta =0;
+		if(size >= 10){
+			//Control para evitar un blucle infinito
+			while(i<10){
+				NumPregunta = 1+(int)(Math.random() * (double)size);
+				for(j=0;j<10;j++){
+					if(elegidas[j] == NumPregunta)
+						break;
+				}
+				if(j == 10){
+					elegidas[i]=NumPregunta;
 					i++;
-					System.out.println(pt.preguntar());
-					System.out.println("Introduce la respuesta correcta 1,2,3 o 4:");
-					try {
-						if(pt.comprobarRespuesta(Integer.parseInt(br.readLine()))){
-							System.out.println("Correcto!!\n");
-							aciertos++;
-						}
-					} catch (NumberFormatException | IOException e) {
-						e.printStackTrace();
-					}
 				}
 			}
+			for(i=0;i<10;i++){
+				for(j=1;j<elegidas[i];j++){
+					if(res.hasNext())
+						res.next();
+				}
+				Pregunta pt = (Pregunta) res.next();
+				res.reset();
+				System.out.println(pt.preguntar());
+				System.out.println("Introduce la respuesta correcta 1,2,3 o 4:");
+				try {
+					if(pt.comprobarRespuesta(Integer.parseInt(br.readLine()))){
+						System.out.println("Correcto!!\n");
+						aciertos++;
+					}else{
+						System.out.println("Incorrecto!!\n");
+					}
+				} catch (NumberFormatException | IOException e) {
+					e.printStackTrace();
+				}
+			}
+			System.out.println("Fin del juego\n" + "Aciertos: " + aciertos +" Fallos: " + (10-aciertos));
+		}else{
+			System.out.println("No hay suficientes preguntas en la base de datos\n");
 		}
-		System.out.println("Fin del juego\n" + "Aciertos: " + aciertos +" Fallos: " + (10-aciertos));
 		if(br != null){
 			try {
 				br.close();
@@ -75,12 +94,13 @@ public class CrearBaseDatos {
 		}
 	}
 	public static void main(String[] args) {
-		EmbeddedConfiguration conf =  Db4oEmbedded.newConfiguration();
-		conf.common().exceptionsOnNotStorable(false);
-		ObjectContainer bd=Db4oEmbedded.openFile(conf, "preguntas.db4o");
+		ObjectContainer bd=Db4oEmbedded.openFile(Db4oEmbedded.newConfiguration(), "preguntas.db4o");
 		try{
 			//REALIZAR OPERACIONES O LLAMADAS A MÉTODOS
-			almacenarPreguntas(bd);
+			if(bd.queryByExample(null).size() == 0){
+				//Si la base de datos esta vacia significa que no se ha creado aun
+				almacenarPreguntas(bd);
+			}
 			juegoPreguntas(bd);
 		}finally {
 			bd.close();
